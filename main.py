@@ -1,58 +1,83 @@
 import random
 
-from palavras_secretas import nivel_facil, nivel_medio, nivel_dificil
+
+def choose_menu() -> str:
+    print("Escolha sua dificuldade")
+    print("1 - nível fácil")
+    print("2 - nível médio")
+    print("3 - nível difícil")
+    print("0 - sair do jogo")
+    return input("Dificuldade: ")
 
 
-letras_validas = []
+def set_level(config: str) -> dict: 
+    if config == "1":
+        return {"lifes": 15, "level": "nivel_facil.txt"}
+    elif config == "2":
+        return {"lifes": 10, "level": "nivel_medio.txt"}
+    elif config == "3":
+        return {"lifes": 5, "level": "nivel_dificil.txt"}
 
-while True:   
 
-    menu = input("Escolha sua dificuldade: 1(fácil); 2(médio); 3(díficil): ")
+def set_secret_word(lvl: str) -> str:
+    with open(lvl, "r", encoding="utf-8") as database:
+        words = database.read().split()
+    return words[random.randint(0, len(words)-1)]
 
-    if menu == "1":
-        vidas = 15
-        palavra_secreta = nivel_facil[random.randint(0, len(nivel_facil)-1)]
-    elif menu == "2":
-        vidas = 10 
-        palavra_secreta = nivel_medio[random.randint(0, len(nivel_medio)-1)]       
-    elif menu == "3":
-        vidas = 5
-        palavra_secreta = nivel_dificil[random.randint(0, len(nivel_dificil)-1)]
-    else:
-        print("Digite 1, 2 ou 3")
-        continue
+
+def run_game(secret_word: str, lifes: int) -> None: 
+    valid_letters = []
     
-    break
- 
-while True:
+    while True:
+        gessed_word = ""
 
-    palavra_exibida = ""
+        letter_attempt = input("Digite uma letra: ")
 
-    letra_chute = input("Digite uma letra: ")
+        if len(letter_attempt) > 1 or letter_attempt.isspace() or not letter_attempt.isalpha(): 
+            print("Digite apenas uma letra válida")
+            continue
 
-    if len(letra_chute) > 1 or letra_chute.isspace() or not letra_chute.isalpha(): 
-        print("Digite apenas uma letra válida")
-        continue
-
-    if letra_chute in palavra_secreta:
-        letras_validas.append(letra_chute)
-    else:
-        vidas -= 1
-
-    for letra in palavra_secreta:    
-    
-        if letra in letras_validas:
-            palavra_exibida += letra
-        
+        if letter_attempt in secret_word:
+            valid_letters.append(letter_attempt)
         else:
-            palavra_exibida += "*"         
+            lifes -= 1
 
-    print(palavra_exibida)
+        for letter in secret_word:    
+        
+            if letter in valid_letters:
+                gessed_word += letter
+            
+            else:
+                gessed_word += "*"         
 
-    if vidas <= 0:
-        print("Você perdeu!")
-        break
+        print(gessed_word)
 
-    if palavra_exibida == palavra_secreta:
-        print("Palavra secreta está certa")
-        break
+        if lifes <= 0:
+            print("Você perdeu!")
+            break
+
+        if gessed_word == secret_word:
+            print("Palavra secreta está certa")
+            break
+
+
+if __name__ == "__main__":
+    
+    print("Jogo descubra a palavra")
+    
+    while True:
+        
+        difficulty = choose_menu()
+
+        if difficulty == "0":
+            print("Tchau, até a próxima")
+            break
+        if difficulty not in ("1", "2", "3"):
+            print("\n**** Digite 1, 2 ou 3 ****\n")
+            continue
+
+        game_config = set_level(difficulty) # dicionario --> level == dicionario
+
+        secret_word = set_secret_word(game_config["level"])
+
+        run_game(secret_word, game_config["lifes"])
